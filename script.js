@@ -21,12 +21,27 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentMatch = null; 
     let savedCourses = []; 
 
-    // جعل الصندوق يفتح نافذة الاختيار عند الضغط عليه (مفيد جداً لجوالات الاندرويد والـ iOS)
+    // دالة ذكية لتحويل أرقام إكسل الغريبة (مثل 46176) إلى تاريخ مقروء ومفهوم للطلاب
+    function formatExcelDate(excelDate) {
+        if (!excelDate) return "";
+        // إذا كان التاريخ مكتوباً كنص عادي من البداية، اتركه كما هو
+        if (isNaN(excelDate)) return excelDate; 
+        
+        // تحويل الرقم التسلسلي لإكسل إلى تاريخ جافاسكريبت
+        const date = new Date((excelDate - 25569) * 86400 * 1000);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        
+        return `${day}-${month}-${year}`;
+    }
+
     dropZone.addEventListener("click", () => {
         excelFileInput.click();
     });
 
-    // أحداث السحب والإفلات (Drag & Drop) للكمبيوتر والويندوز
     ["dragenter", "dragover"].forEach(eventName => {
         dropZone.addEventListener(eventName, (e) => {
             e.preventDefault();
@@ -43,20 +58,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }, false);
     });
 
-    // التعامل مع الملف عند إفلاته داخل الصندوق
     dropZone.addEventListener("drop", (e) => {
         const dt = e.dataTransfer;
         const file = dt.files[0];
         if (file) handleFile(file);
     });
 
-    // التعامل مع الملف عند اختياره بالطريقة التقليدية
     excelFileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) handleFile(file);
     });
 
-    // دالة موحدة لقراءة ملف الإكسل
     function handleFile(file) {
         if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
             alert("Please upload a valid Excel file (.xlsx or .xls)");
@@ -77,12 +89,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function processExcelData(data, fileName) {
         examData = data.map(row => {
+            // هنا نقوم بتمرير التاريخ المجلوب للدالة لتصليحه فوراً قبل عرضه
+            const rawDate = row["Exam Date"] || row["date"] || "";
+            const formattedDate = formatExcelDate(rawDate);
+
             return {
                 code: row["Crs. Code"] || row["code"] || "",
                 title: row["Course Title"] || row["title"] || "",
                 section: row["Section"] || row["section"] || "",
                 room: row["Room"] || row["room"] || "",
-                date: row["Exam Date"] || row["date"] || "",
+                date: formattedDate, // التاريخ المصلح الذكي
                 period: row["Period"] || row["period"] || "",
                 time: row["Time"] || row["time"] || ""
             };
@@ -91,7 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (examData.length > 0) {
             uniqueTitles = [...new Set(examData.map(item => item.title))].sort();
             
-            // تحديث نصوص صندوق الرفع
             uploadPrompt.textContent = `Active File: ${fileName}`;
             fileStatus.style.display = "block";
             searchBox.style.display = "block"; 
@@ -108,7 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // ميزات البحث والـ Dropdown الذكية المعتادة
     function initTitleDropdown(filterText = "") {
         titleDropdown.innerHTML = "";
         const filtered = uniqueTitles.filter(t => t.toLowerCase().includes(filterText.toLowerCase()));
@@ -118,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const div = document.createElement("div");
             div.textContent = title;
             div.addEventListener("click", (e) => {
-                e.stopPropagation(); // منع فتح نافذة الرفع مجدداً
+                e.stopPropagation(); 
                 titleInput.value = title;
                 titleDropdown.style.display = "none";
                 enableSectionDropdown(title);
