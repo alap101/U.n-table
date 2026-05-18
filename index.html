@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Exam Finder & Schedule Builder</title>
+    <title>Dynamic Exam Finder & Schedule Builder</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -21,13 +21,17 @@
         header h1 { color: var(--accent-color); font-size: 1.8rem; margin-bottom: 5px; }
         header p { color: #94a3b8; font-size: 0.9rem; }
         
-        .search-box { background-color: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; }
+        .upload-box { background-color: #1e293b; border: 2px dashed var(--accent-color); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+        .upload-box input { display: none; }
+        .upload-btn { background-color: var(--accent-color); color: #0f172a; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 10px; }
+        
+        .search-box { background-color: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; display: none; }
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
         .input-group { flex: 1; position: relative; }
         label { display: block; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; font-weight: 600; }
         
-        input { width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 1rem; outline: none; }
-        input:focus { border-color: var(--accent-color); }
+        input[type="text"] { width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 1rem; outline: none; }
+        input[type="text"]:focus { border-color: var(--accent-color); }
         
         .dropdown-list { position: absolute; top: 100%; left: 0; width: 100%; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
         .dropdown-list div { padding: 10px 12px; cursor: pointer; font-size: 0.95rem; border-bottom: 1px solid #3341551a; }
@@ -40,9 +44,7 @@
         
         .btn { padding: 10px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
         .btn-add { background-color: var(--accent-color); color: #0f172a; }
-        .btn-add:hover { background-color: #7dd3fc; }
         .btn-pdf { background-color: var(--success-color); color: #fff; width: 100%; margin-top: 15px; padding: 12px; font-size: 1rem; }
-        .btn-pdf:hover { background-color: #059669; }
         .btn-delete { background-color: #ef4444; color: white; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; }
 
         .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
@@ -60,16 +62,24 @@
         tr:nth-child(even) { background-color: #f8fafc; }
 
         .no-results { text-align: center; color: #64748b; margin-top: 20px; font-style: italic; display: none; }
+        #fileStatus { margin-top: 5px; font-size: 0.85rem; color: var(--success-color); display: none; }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
         <h1>Smart Exam Finder</h1>
-        <p>Type or select your course to build your final exam schedule</p>
+        <p>Upload exam CSV file to start searching</p>
     </header>
 
-    <div class="search-box">
+    <div class="upload-box">
+        <p>Select the final exam CSV file</p>
+        <label for="csvFileInput" class="upload-btn">📁 Choose CSV File</label>
+        <input type="file" id="csvFileInput" accept=".csv">
+        <div id="fileStatus">✓ File uploaded successfully!</div>
+    </div>
+
+    <div id="searchBox" class="search-box">
         <div class="row">
             <div class="input-group" style="flex: 2;">
                 <label>Course Title</label>
@@ -123,7 +133,6 @@
     </div>
 </div>
 
-<script src="data.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
