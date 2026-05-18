@@ -247,30 +247,9 @@ document.addEventListener("DOMContentLoaded", () => {
         myScheduleSection.style.display = "block";
     }
 
-    // تصدير جدول الشاشة المباشر وإلغاء الهوامش تماماً لملء كامل الصفحة باللون الداكن الفخم
+    // تشغيل ميزة الطباعة الرسمية والذكية للنظام لإنتاج PDF طبيعي ونظيف 100%
     downloadPdfBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        
-        const deleteButtons = document.querySelectorAll(".no-print");
-        deleteButtons.forEach(el => el.style.display = "none");
-        
-        const element = document.getElementById("pdfArea");
-        
-        const options = {
-            margin:       0, // تصفير الهوامش لمنع ظهور خلفية المتصفح البيضاء
-            filename:     'My_Exam_Schedule.pdf',
-            image:        { type: 'jpeg', quality: 1.0 },
-            html2canvas:  { 
-                scale: 2.5, 
-                useCORS: true,
-                backgroundColor: "#0f172a", // صبغ كامل لوحة الـ PDF باللون الداكن الفخم
-                width: 900 // تثبيت العرض ليكون من الحافة إلى الحافة
-            },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
-        
-        html2pdf().set(options).from(element).save().then(() => {
-            deleteButtons.forEach(el => el.style.display = "table-cell");
-        });
+        window.print(); // يفتح نافذة الـ PDF الرسمية والآمنة للجهاز فوراً
     });
 });
