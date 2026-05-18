@@ -247,30 +247,29 @@ document.addEventListener("DOMContentLoaded", () => {
         myScheduleSection.style.display = "block";
     }
 
-    // تصدير جدول الشاشة المباشر بدقة عالية وحجم عريض يملأ الورقة بالكامل بدون بياض
+    // تصدير جدول الشاشة المباشر وإلغاء الهوامش تماماً لملء كامل الصفحة باللون الداكن الفخم
     downloadPdfBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         
-        // إخفاء عمود الحذف (❌) مؤقتاً لكي لا يظهر في الـ PDF
         const deleteButtons = document.querySelectorAll(".no-print");
         deleteButtons.forEach(el => el.style.display = "none");
         
         const element = document.getElementById("pdfArea");
         
         const options = {
-            margin:       [10, 10, 10, 10],
+            margin:       0, // تصفير الهوامش لمنع ظهور خلفية المتصفح البيضاء
             filename:     'My_Exam_Schedule.pdf',
             image:        { type: 'jpeg', quality: 1.0 },
             html2canvas:  { 
-                scale: 2.5, // دقة ممتازة وخطوط حادة جداً
+                scale: 2.5, 
                 useCORS: true,
-                backgroundColor: "#0f172a" // إجبار أطراف الورقة بالكامل لتصبح داكنة وفخمة تابعة للموقع
+                backgroundColor: "#0f172a", // صبغ كامل لوحة الـ PDF باللون الداكن الفخم
+                width: 900 // تثبيت العرض ليكون من الحافة إلى الحافة
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
         
         html2pdf().set(options).from(element).save().then(() => {
-            // إعادة إظهار عمود الحذف (❌) بعد انتهاء التصدير مباشرة
             deleteButtons.forEach(el => el.style.display = "table-cell");
         });
     });
