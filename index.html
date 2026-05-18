@@ -22,7 +22,6 @@
         header h1 { color: var(--accent-color); font-size: 1.8rem; margin-bottom: 5px; }
         header p { color: #94a3b8; font-size: 0.9rem; }
         
-        /* صندوق الرفع المطور ليدعم السحب والإفلات */
         .upload-box { background-color: #1e293b; border: 2px dashed var(--accent-color); padding: 30px 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; transition: all 0.2s ease; cursor: pointer; }
         .upload-box.dragover { background-color: #334155; border-color: var(--success-color); transform: scale(1.02); }
         .upload-box input { display: none; }
@@ -58,11 +57,16 @@
         .my-schedule-section { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 25px; display: none; }
         .schedule-title { font-size: 1.2rem; color: #fff; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; }
         
-        .pdf-table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 6px; color: #000; padding: 10px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-        th, td { padding: 10px; border: 1px solid #cbd5e1; }
-        th { background-color: #f1f5f9; color: #1e293b; font-weight: bold; }
-        tr:nth-child(even) { background-color: #f8fafc; }
+        /* تحسين صندوق الـ PDF والجدول ليصبح متناسق وداكن ومرتب */
+        .pdf-table-wrapper { width: 100%; background: #1e293b; border-radius: 8px; color: var(--text-color); padding: 15px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #0f172a; color: var(--accent-color); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        tr:last-child td { border-bottom: none; }
+        
+        .course-td { font-weight: 600; color: #fff; }
+        .course-code-sub { color: #94a3b8; font-size: 0.8rem; margin-top: 2px; font-weight: normal; }
+        .room-td { color: var(--success-color); font-weight: bold; }
 
         .no-results { text-align: center; color: #64748b; margin-top: 20px; font-style: italic; display: none; }
         #fileStatus { margin-top: 5px; font-size: 0.85rem; color: var(--success-color); display: none; }
