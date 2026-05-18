@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const addToScheduleBtn = document.getElementById("addToScheduleBtn");
     const myScheduleSection = document.getElementById("myScheduleSection");
     const scheduleBody = document.getElementById("scheduleBody");
+    const pdfPrintBody = document.getElementById("pdfPrintBody");
     const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
     let examData = []; 
@@ -109,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             savedCourses = [];
             scheduleBody.innerHTML = "";
+            pdfPrintBody.innerHTML = "";
             myScheduleSection.style.display = "none";
             resultCard.style.display = "none";
             titleInput.value = "";
@@ -213,28 +215,43 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isAlreadyAdded) { alert("This course section is already in your schedule!"); return; }
         
         savedCourses.push(currentMatch);
-        updateScheduleTable();
+        updateScheduleTables();
         titleInput.value = "";
         sectionInput.value = "";
         sectionInput.disabled = true;
         resultCard.style.display = "none";
     });
 
-    // تحديث بناء خلايا الجدول بالألوان الجديدة المتناسقة والمنظمة
-    function updateScheduleTable() {
+    // دالة تقوم بتحديث الجدولين معاً (جدول شاشة الموقع، وجدول الطباعة للـ PDF)
+    function updateScheduleTables() {
         scheduleBody.innerHTML = "";
+        pdfPrintBody.innerHTML = "";
+        
         if (savedCourses.length === 0) { myScheduleSection.style.display = "none"; return; }
+        
         savedCourses.forEach((course, index) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td class="course-td">${course.title}<div class="course-code-sub">${course.code}</div></td>
+            // 1. إضافة للموقع المباشر
+            const trMain = document.createElement("tr");
+            trMain.innerHTML = `
+                <td style="font-weight:600; color:#fff;">${course.title}<br><small style="color:#94a3b8">${course.code}</small></td>
                 <td>${course.section}</td>
-                <td class="room-td">${course.room}</td>
+                <td style="color:#10b981; font-weight:bold;">${course.room}</td>
                 <td>${course.date}</td>
-                <td>${course.time} <span style="color:#94a3b8; font-size:0.8rem;">(${course.period})</span></td>
-                <td class="no-print"><button class="btn-delete" data-index="${index}">❌</button></td>
+                <td>${course.time} <small style="color:#94a3b8">(${course.period})</small></td>
+                <td><button class="btn-delete" data-index="${index}">❌</button></td>
             `;
-            scheduleBody.appendChild(tr);
+            scheduleBody.appendChild(trMain);
+
+            // 2. إضافة للجدول الرسمي النظيف الخاص بالـ PDF المطبوع
+            const trPrint = document.createElement("tr");
+            trPrint.innerHTML = `
+                <td style="font-weight:bold;">${course.title} (${course.code})</td>
+                <td>${course.section}</td>
+                <td style="color:#10b981; font-weight:bold;">${course.room}</td>
+                <td>${course.date}</td>
+                <td>${course.time} (${course.period})</td>
+            `;
+            pdfPrintBody.appendChild(trPrint);
         });
 
         document.querySelectorAll(".btn-delete").forEach(btn => {
@@ -242,34 +259,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.stopPropagation();
                 const idx = e.target.getAttribute("data-index");
                 savedCourses.splice(idx, 1);
-                updateScheduleTable();
+                updateScheduleTables();
             });
         });
         myScheduleSection.style.display = "block";
     }
 
-    // إصلاح أبعاد التقاط صورة الـ PDF لتناسب الجوال والكمبيوتر وتملأ الشاشة
+    // تصدير الحاوية الثابتة المخصصة حصرياً للـ PDF لملئ الورقة بالكامل
     downloadPdfBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const deleteButtons = document.querySelectorAll(".no-print");
-        deleteButtons.forEach(el => el.style.display = "none");
         
-        const element = document.getElementById("pdfArea");
+        // جلب الحاوية الثابتة العريضة المخفية
+        const element = document.getElementById("pdfPrintContainer");
         
         const options = {
-            margin:       [8, 8, 8, 8],
+            margin:       [12, 12, 12, 12],
             filename:     'My_Exam_Schedule.pdf',
             image:        { type: 'jpeg', quality: 1.0 },
             html2canvas:  { 
-                scale: 3, // زيادة الدقة لمنع البكسلة وضبابية الخطوط
+                scale: 2.5, // دقة ممتازة وخطوط حادة جداً
                 useCORS: true,
-                backgroundColor: "#1e293b" // إجبار الخلفية لتصبح داكنة ومرتبة بدلاً من الأبيض العشوائي
+                logging: false,
+                width: 1050 // حجم ثابت عريض يضمن ملئ ورقة الـ PDF بالكامل
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
         
-        html2pdf().set(options).from(element).save().then(() => {
-            deleteButtons.forEach(el => el.style.display = "table-cell");
-        });
+        html2pdf().set(options).from(element).save();
     });
 });
