@@ -22,9 +22,11 @@
         header h1 { color: var(--accent-color); font-size: 1.8rem; margin-bottom: 5px; }
         header p { color: #94a3b8; font-size: 0.9rem; }
         
-        .upload-box { background-color: #1e293b; border: 2px dashed var(--accent-color); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+        /* صندوق الرفع المطور ليدعم السحب والإفلات */
+        .upload-box { background-color: #1e293b; border: 2px dashed var(--accent-color); padding: 30px 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; transition: all 0.2s ease; cursor: pointer; }
+        .upload-box.dragover { background-color: #334155; border-color: var(--success-color); transform: scale(1.02); }
         .upload-box input { display: none; }
-        .upload-btn { background-color: var(--accent-color); color: #0f172a; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 10px; }
+        .upload-btn { background-color: var(--accent-color); color: #0f172a; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 10px; pointer-events: none; }
         
         .search-box { background-color: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; display: none; }
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -70,12 +72,12 @@
 <div class="container">
     <header>
         <h1>Smart Exam Finder</h1>
-        <p>Upload exam Excel file (.xlsx) to start searching</p>
+        <p>Drag & Drop or Upload your Excel file (.xlsx)</p>
     </header>
 
-    <div class="upload-box">
-        <p>Select the final exam Excel file</p>
-        <label for="excelFileInput" class="upload-btn">📁 Choose Excel File (.xlsx)</label>
+    <div id="dropZone" class="upload-box">
+        <p id="uploadPrompt">Drag & Drop file here or click to choose</p>
+        <div class="upload-btn">📁 Choose Excel File (.xlsx)</div>
         <input type="file" id="excelFileInput" accept=".xlsx, .xls">
         <div id="fileStatus">✓ File processed successfully!</div>
     </div>
