@@ -11,32 +11,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 1. إنشاء حاوية برمجية بيضاء نظيفة مستقلة تماماً داخل الذاكرة من أجل الـ PDF
         const printWrapper = document.createElement("div");
-        printWrapper.style.width = "270mm"; // عرض ورقة الـ A4 الأفقية بعد خصم الهوامش
+        printWrapper.style.width = "270mm"; // عرض ورقة الـ A4 الأفقية الثابت
         printWrapper.style.padding = "20px";
         printWrapper.style.backgroundColor = "#ffffff";
         printWrapper.style.color = "#000000";
         printWrapper.style.fontFamily = "'Segoe UI', sans-serif";
 
-        // 2. تصميم رأس الجدول المستقل الفخم والواضح
+        // 2. تصميم رأس الجدول المستقل الواضح
         const headerDiv = document.createElement("div");
         headerDiv.style.textAlign = "center";
         headerDiv.style.marginBottom = "25px";
         headerDiv.style.borderBottom = "2px solid #0f172a";
         headerDiv.style.paddingBottom = "15px";
         headerDiv.innerHTML = `
-            <h1 style="font-size: 26px; color: #0f172a; margin-bottom: 5px;">My Official Exam Schedule</h1>
+            <h1 style="font-size: 26px; color: #0f172a; margin-bottom: 5px; font-weight: bold;">My Official Exam Schedule</h1>
             <p style="font-size: 13px; color: #475569; margin: 0;">Generated smoothly on mobile & desktop</p>
         `;
         printWrapper.appendChild(headerDiv);
 
-        // 3. بناء الجدول الطبيعي، المنظم والأبيض بالكامل المخصص للطباعة
+        // 3. بناء الجدول الطبيعي والأبيض بالكامل المخصص للطباعة
         const table = document.createElement("table");
         table.style.width = "100%";
         table.style.borderCollapse = "collapse";
         table.style.fontSize = "13px";
         table.style.color = "#000000";
 
-        // تصميم عناوين الأعمدة
         table.innerHTML = `
             <thead>
                 <tr style="background-color: #f1f5f9;">
@@ -52,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tbody = table.querySelector("tbody");
 
-        // ملء صفوف الجدول بناءً على المواد التي قام الطالب بتجميعها
         window.savedCourses.forEach(course => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -67,21 +65,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
         printWrapper.appendChild(table);
 
-        // 4. ضبط إعدادات التصدير المثالية لتجبر الورقة على الامتداد الكامل والمنظم في التلفون واللابتوب
+        // 4. فحص نوع الجهاز برمجياً لتطبيق الإعداد المناسب له بدون تخريب الآخر
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        const html2canvasOptions = {
+            scale: 2.5,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        };
+
+        // إذا كان هاتف، نطبق خدعة الشاشة الافتراضية العريضة لمنع الانكماش والبياض
+        if (isMobile) {
+            html2canvasOptions.width = 1020;
+            html2canvasOptions.windowWidth = 1020;
+        }
+
         const options = {
             margin:       [8, 8, 8, 8],
             filename:     'My_Exam_Schedule.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { 
-                scale: 2.5, // دقة عالية جداً للخطوط لمنع البكسلة
-                useCORS: true,
-                backgroundColor: "#ffffff", // إجبار خلفية الورقة لتكون بيضاء ونظيفة بدون فراغات
-                width: 1020 // تثبيت الأبعاد على مقاس تصفح عريض لضمان التمدد الأفقي الكامل
-            },
+            html2canvas:  html2canvasOptions,
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
 
-        // تشغيل نظام التنزيل على الحاوية المستقلة
+        // تشغيل نظام التنزيل
         html2pdf().set(options).from(printWrapper).save();
     });
 });
