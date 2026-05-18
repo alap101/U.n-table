@@ -222,7 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
         resultCard.style.display = "none";
     });
 
-    // دالة تقوم بتحديث الجدولين معاً (جدول شاشة الموقع، وجدول الطباعة للـ PDF)
     function updateScheduleTables() {
         scheduleBody.innerHTML = "";
         pdfPrintBody.innerHTML = "";
@@ -230,7 +229,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (savedCourses.length === 0) { myScheduleSection.style.display = "none"; return; }
         
         savedCourses.forEach((course, index) => {
-            // 1. إضافة للموقع المباشر
             const trMain = document.createElement("tr");
             trMain.innerHTML = `
                 <td style="font-weight:600; color:#fff;">${course.title}<br><small style="color:#94a3b8">${course.code}</small></td>
@@ -242,14 +240,16 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             scheduleBody.appendChild(trMain);
 
-            // 2. إضافة للجدول الرسمي النظيف الخاص بالـ PDF المطبوع
             const trPrint = document.createElement("tr");
             trPrint.innerHTML = `
-                <td style="font-weight:bold;">${course.title} (${course.code})</td>
-                <td>${course.section}</td>
-                <td style="color:#10b981; font-weight:bold;">${course.room}</td>
-                <td>${course.date}</td>
-                <td>${course.time} (${course.period})</td>
+                <td>
+                    <div class="print-course-title">${course.title}</div>
+                    <div class="print-course-code">${course.code}</div>
+                </td>
+                <td style="color:#ffffff;">${course.section}</td>
+                <td><span class="print-room-badge">${course.room}</span></td>
+                <td style="color:#ffffff;">${course.date}</td>
+                <td style="color:#ffffff;">${course.time} <span style="color:#94a3b8; font-size:11px;">(${course.period})</span></td>
             `;
             pdfPrintBody.appendChild(trPrint);
         });
@@ -265,22 +265,21 @@ document.addEventListener("DOMContentLoaded", () => {
         myScheduleSection.style.display = "block";
     }
 
-    // تصدير الحاوية الثابتة المخصصة حصرياً للـ PDF لملئ الورقة بالكامل
+    // إعدادات التصدير الاحترافية لمنع التفاف السطور والمساحات البيضاء على الهاتف والويندوز
     downloadPdfBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        
-        // جلب الحاوية الثابتة العريضة المخفية
         const element = document.getElementById("pdfPrintContainer");
         
         const options = {
-            margin:       [12, 12, 12, 12],
+            margin:       0, // إلغاء الهوامش البيضاء تماماً
             filename:     'My_Exam_Schedule.pdf',
             image:        { type: 'jpeg', quality: 1.0 },
             html2canvas:  { 
-                scale: 2.5, // دقة ممتازة وخطوط حادة جداً
+                scale: 2.5, // دقة فائقة الوضوح للخطوط والرموز
                 useCORS: true,
                 logging: false,
-                width: 1050 // حجم ثابت عريض يضمن ملئ ورقة الـ PDF بالكامل
+                width: 1122, // العرض الثابت الدقيق لورقة A4 أفقية بالبكسل لمنع انكماش الجدول
+                windowWidth: 1122 // محاكاة تصفح عريض على الجوال ليخرج الجدول ممتازاً
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
