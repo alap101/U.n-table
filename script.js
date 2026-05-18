@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const csvFileInput = document.getElementById("csvFileInput");
+    const fileStatus = document.getElementById("fileStatus");
+    const searchBox = document.getElementById("searchBox");
+    
     const titleInput = document.getElementById("titleInput");
     const titleDropdown = document.getElementById("titleDropdown");
     const sectionInput = document.getElementById("sectionInput");
@@ -10,12 +14,74 @@ document.addEventListener("DOMContentLoaded", () => {
     const scheduleBody = document.getElementById("scheduleBody");
     const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
+    let examData = []; // سيتم ملؤها ديناميكياً من الملف المرفوع
+    let uniqueTitles = [];
     let currentMatch = null; 
     let savedCourses = []; 
 
-    // جلب أسماء المواد الفريدة وترتيبها أبجدياً
-    const uniqueTitles = [...new Set(examData.map(item => item.title))].sort();
+    // 1. الاستماع لرفع الملف وقراءته فوراً
+    csvFileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const text = event.target.result;
+            parseCSV(text);
+        };
+        reader.readAsText(file);
+    });
+
+    // دالة لتحويل نص الـ CSV إلى مصفوفة برمجية
+    function parseCSV(text) {
+        examData = [];
+        const lines = text.split("\n");
+        
+        // جلب العناوين لمعرفة الترتيب الصحيح للأعمدة
+        const headers = lines[0].split(";").map(h => h.trim().replace(/"/g, ''));
+        
+        const codeIdx = headers.indexOf("Crs. Code");
+        const titleIdx = headers.indexOf("Course Title");
+        const secIdx = headers.indexOf("Section");
+        const roomIdx = headers.indexOf("Room");
+        const dateIdx = headers.indexOf("Exam Date");
+        const periodIdx = headers.indexOf("Period");
+        const timeIdx = headers.indexOf("Time");
+
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const columns = lines[i].split(";").map(c => c.trim().replace(/"/g, ''));
+            
+            if (columns.length >= headers.length) {
+                examData.push({
+                    code: columns[codeIdx] || "",
+                    title: columns[titleIdx] || "",
+                    section: columns[secIdx] || "",
+                    room: columns[roomIdx] || "",
+                    date: columns[dateIdx] || "",
+                    period: columns[periodIdx] || "",
+                    time: columns[timeIdx] || ""
+                });
+            }
+        }
+
+        if (examData.length > 0) {
+            uniqueTitles = [...new Set(examData.map(item => item.title))].sort();
+            fileStatus.style.display = "block";
+            searchBox.style.display = "block"; // إظهار صناديق البحث
+            
+            // تصفير البيانات السابقة إن وجدت
+            savedCourses = [];
+            scheduleBody.innerHTML = "";
+            myScheduleSection.style.display = "none";
+            resultCard.style.display = "none";
+            titleInput.value = "";
+            sectionInput.value = "";
+            sectionInput.disabled = true;
+        }
+    }
+
+    // ميزات البحث والـ Dropdown المدمجة
     function initTitleDropdown(filterText = "") {
         titleDropdown.innerHTML = "";
         const filtered = uniqueTitles.filter(t => t.toLowerCase().includes(filterText.toLowerCase()));
@@ -86,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function triggerFinalSearch(title, section) {
         if (!title || !section) return;
-        
         const match = examData.find(item => item.title.toLowerCase() === title.toLowerCase() && item.section.toString() === section.toString());
         
         if (match) {
@@ -97,7 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("resRoom").textContent = match.room;
             document.getElementById("resDate").textContent = match.date;
             document.getElementById("resTime").textContent = `${match.time} (${match.period})`;
-            
             resultCard.style.display = "block";
             noResults.style.display = "none";
         } else {
@@ -114,16 +178,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addToScheduleBtn.addEventListener("click", () => {
         if (!currentMatch) return;
-
         const isAlreadyAdded = savedCourses.some(item => item.code === currentMatch.code && item.section === currentMatch.section);
         if (isAlreadyAdded) {
             alert("This course section is already in your schedule!");
             return;
         }
-
         savedCourses.push(currentMatch);
         updateScheduleTable();
-        
         titleInput.value = "";
         sectionInput.value = "";
         sectionInput.disabled = true;
@@ -136,7 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
             myScheduleSection.style.display = "none";
             return;
         }
-
         savedCourses.forEach((course, index) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -157,14 +217,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateScheduleTable();
             });
         });
-
         myScheduleSection.style.display = "block";
     }
 
     downloadPdfBtn.addEventListener("click", () => {
         const deleteButtons = document.querySelectorAll(".no-print");
         deleteButtons.forEach(el => el.style.display = "none");
-
         const element = document.getElementById("pdfArea");
         const options = {
             margin:       [10, 10, 10, 10],
@@ -173,7 +231,6 @@ document.addEventListener("DOMContentLoaded", () => {
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
-
         html2pdf().set(options).from(element).save().then(() => {
             deleteButtons.forEach(el => el.style.display = "table-cell");
         });
