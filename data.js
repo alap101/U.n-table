@@ -1,0 +1,20 @@
+const examData = [
+  { "code": "MATH2110", "title": "Calculus 2", "section": "50", "room": "D109", "date": "31-May-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "CSOP1207", "title": "Principles of Operating Systems", "section": "10", "room": "D109", "date": "06-Jun-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "FPMS0001", "title": "Mathematics for Science", "section": "110", "room": "D109", "date": "07-Jun-2026", "period": "Noon", "time": "12:00 - 2:00" },
+  { "code": "EGEL4110", "title": "SWITCHGEAR AND PROTECTION", "section": "10", "room": "T005", "date": "06-Jun-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "CSDS2101", "title": "Database Systems", "section": "10A", "room": "L108 (LRC)", "date": "24-May-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "CSSY2201", "title": "Introduction to Cryptography", "section": "10", "room": "D108", "date": "24-May-2026", "period": "Noon", "time": "12:00 - 2:00" },
+  { "code": "EGRE1230", "title": "Introduction to renewable", "section": "10A", "room": "D108", "date": "08-Jun-2026", "period": "Noon", "time": "12:00 - 2:00" },
+  { "code": "EGEL3110", "title": "ELECTRIC CIRCUITS II", "section": "10", "room": "D108", "date": "13-Jun-2026", "period": "Noon", "time": "12:00 - 2:00" },
+  { "code": "CSWD2101", "title": "Web Development II", "section": "40", "room": "L110 (LRC)", "date": "11-Jun-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "FPCS0001", "title": "Computing Skills", "section": "70", "room": "L110 (LRC)", "date": "08-Jun-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "BUMG4110", "title": "PROJECT MANAGEMENT", "section": "10", "room": "D112", "date": "27-May-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "HUMN1001", "title": "Omani Civilization", "section": "80", "room": "D112", "date": "08-Jun-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "BUMK1101", "title": "Principles of Marketing", "section": "10", "room": "D112", "date": "06-Jun-2026", "period": "Noon", "time": "12:00 - 2:00" },
+  { "code": "EGIE4220", "title": "FACILITIES PLANNING AND DESIGN", "section": "10", "room": "D112", "date": "02-Jun-2026", "period": "Morning", "time": "9:00 - 11:00" },
+  { "code": "EGME4140", "title": "FLUID POWER CONTROL SYSTEMS", "section": "10", "room": "D112", "date": "08-Jun-2026", "period": "Noon", "time": "12:00 - 2:00" },
+  { "code": "UNR100", "title": "Life Skills", "section": "10", "room": "Multi-Purpose Hall (Male)", "date": "23-May-2026", "period": "Morning", "time": "8:30 - 10:30" },
+  { "code": "UNR100", "title": "Life Skills", "section": "20", "room": "A015 (Female)", "date": "23-May-2026", "period": "Morning", "time": "8:30 - 10:30" },
+  { "code": "UNR100", "title": "Life Skills", "section": "30", "room": "A016 (Female)", "date": "23-May-2026", "period": "Morning", "time": "8:30 - 10:30" }
+];
