@@ -1,3 +1,6 @@
+// مصفوفة عالمية لمشاركة المواد المحفوظة مع ملف التنزيل المخصص
+window.savedCourses = []; 
+
 document.addEventListener("DOMContentLoaded", () => {
     const excelFileInput = document.getElementById("excelFileInput");
     const dropZone = document.getElementById("dropZone");
@@ -14,12 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const addToScheduleBtn = document.getElementById("addToScheduleBtn");
     const myScheduleSection = document.getElementById("myScheduleSection");
     const scheduleBody = document.getElementById("scheduleBody");
-    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
     let examData = []; 
     let uniqueTitles = [];
     let currentMatch = null; 
-    let savedCourses = []; 
 
     function formatExcelDate(excelDate) {
         if (!excelDate) return "";
@@ -107,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fileStatus.style.display = "block";
             searchBox.style.display = "block"; 
             
-            savedCourses = [];
+            window.savedCourses = [];
             scheduleBody.innerHTML = "";
             myScheduleSection.style.display = "none";
             resultCard.style.display = "none";
@@ -209,10 +210,10 @@ document.addEventListener("DOMContentLoaded", () => {
     addToScheduleBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!currentMatch) return;
-        const isAlreadyAdded = savedCourses.some(item => item.code === currentMatch.code && item.section === currentMatch.section);
+        const isAlreadyAdded = window.savedCourses.some(item => item.code === currentMatch.code && item.section === currentMatch.section);
         if (isAlreadyAdded) { alert("This course section is already in your schedule!"); return; }
         
-        savedCourses.push(currentMatch);
+        window.savedCourses.push(currentMatch);
         updateScheduleTable();
         titleInput.value = "";
         sectionInput.value = "";
@@ -222,16 +223,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateScheduleTable() {
         scheduleBody.innerHTML = "";
-        if (savedCourses.length === 0) { myScheduleSection.style.display = "none"; return; }
-        savedCourses.forEach((course, index) => {
+        if (window.savedCourses.length === 0) { myScheduleSection.style.display = "none"; return; }
+        window.savedCourses.forEach((course, index) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td class="course-td">${course.title}<div class="course-code-sub">${course.code}</div></td>
+                <td style="font-weight:600; color:#fff;">${course.title}<br><small style="color:#94a3b8">${course.code}</small></td>
                 <td style="color:#fff;">${course.section}</td>
-                <td class="room-td">${course.room}</td>
+                <td style="color:#10b981; font-weight:bold;">${course.room}</td>
                 <td style="color:#fff;">${course.date}</td>
                 <td style="color:#fff;">${course.time} <span style="color:#94a3b8; font-size:0.8rem;">(${course.period})</span></td>
-                <td class="no-print"><button class="btn-delete" data-index="${index}">❌</button></td>
+                <td><button class="btn-delete" data-index="${index}">❌</button></td>
             `;
             scheduleBody.appendChild(tr);
         });
@@ -240,16 +241,10 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const idx = e.target.getAttribute("data-index");
-                savedCourses.splice(idx, 1);
+                window.savedCourses.splice(idx, 1);
                 updateScheduleTable();
             });
         });
         myScheduleSection.style.display = "block";
     }
-
-    // تشغيل ميزة الطباعة الرسمية والذكية للنظام لإنتاج PDF طبيعي ونظيف 100%
-    downloadPdfBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.print(); // يفتح نافذة الـ PDF الرسمية والآمنة للجهاز فوراً
-    });
 });
