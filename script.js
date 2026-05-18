@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const excelFileInput = document.getElementById("excelFileInput");
+    const dropZone = document.getElementById("dropZone");
+    const uploadPrompt = document.getElementById("uploadPrompt");
     const fileStatus = document.getElementById("fileStatus");
     const searchBox = document.getElementById("searchBox");
     
@@ -19,29 +21,61 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentMatch = null; 
     let savedCourses = []; 
 
-    // قراءة ملف الـ XLSX ديناميكياً باستخدام مكتبة SheetJS
+    // جعل الصندوق يفتح نافذة الاختيار عند الضغط عليه (مفيد جداً لجوالات الاندرويد والـ iOS)
+    dropZone.addEventListener("click", () => {
+        excelFileInput.click();
+    });
+
+    // أحداث السحب والإفلات (Drag & Drop) للكمبيوتر والويندوز
+    ["dragenter", "dragover"].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add("dragover");
+        }, false);
+    });
+
+    ["dragleave", "drop"].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove("dragover");
+        }, false);
+    });
+
+    // التعامل مع الملف عند إفلاته داخل الصندوق
+    dropZone.addEventListener("drop", (e) => {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        if (file) handleFile(file);
+    });
+
+    // التعامل مع الملف عند اختياره بالطريقة التقليدية
     excelFileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
-        if (!file) return;
+        if (file) handleFile(file);
+    });
+
+    // دالة موحدة لقراءة ملف الإكسل
+    function handleFile(file) {
+        if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+            alert("Please upload a valid Excel file (.xlsx or .xls)");
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = function (event) {
             const data = new Uint8Array(event.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            
-            // قراءة ورقة العمل الأولى داخل ملف الإكسل
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            
-            // تحويل الورقة إلى مصفوفة كائنات جافاسكريبت (JSON)
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
-            processExcelData(jsonData);
+            processExcelData(jsonData, file.name);
         };
         reader.readAsArrayBuffer(file);
-    });
+    }
 
-    // دالة لربط وتنسيق بيانات الإكسل لتطابق واجهة البحث والـ PDF
-    function processExcelData(data) {
+    function processExcelData(data, fileName) {
         examData = data.map(row => {
             return {
                 code: row["Crs. Code"] || row["code"] || "",
@@ -52,14 +86,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 period: row["Period"] || row["period"] || "",
                 time: row["Time"] || row["time"] || ""
             };
-        }).filter(item => item.title !== ""); // استبعاد السطور الفارغة إن وجدت
+        }).filter(item => item.title !== "");
 
         if (examData.length > 0) {
             uniqueTitles = [...new Set(examData.map(item => item.title))].sort();
+            
+            // تحديث نصوص صندوق الرفع
+            uploadPrompt.textContent = `Active File: ${fileName}`;
             fileStatus.style.display = "block";
             searchBox.style.display = "block"; 
             
-            // إعادة تهيئة الواجهة
             savedCourses = [];
             scheduleBody.innerHTML = "";
             myScheduleSection.style.display = "none";
@@ -72,20 +108,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // ميزات البحث والـ Dropdown المدمجة والذكية
+    // ميزات البحث والـ Dropdown الذكية المعتادة
     function initTitleDropdown(filterText = "") {
         titleDropdown.innerHTML = "";
         const filtered = uniqueTitles.filter(t => t.toLowerCase().includes(filterText.toLowerCase()));
-        
-        if(filtered.length === 0) {
-            titleDropdown.style.display = "none";
-            return;
-        }
+        if(filtered.length === 0) { titleDropdown.style.display = "none"; return; }
 
         filtered.forEach(title => {
             const div = document.createElement("div");
             div.textContent = title;
-            div.addEventListener("click", () => {
+            div.addEventListener("click", (e) => {
+                e.stopPropagation(); // منع فتح نافذة الرفع مجدداً
                 titleInput.value = title;
                 titleDropdown.style.display = "none";
                 enableSectionDropdown(title);
@@ -106,11 +139,11 @@ document.addEventListener("DOMContentLoaded", () => {
         resultCard.style.display = "none";
 
         const sections = examData.filter(item => item.title === courseTitle).map(item => item.section);
-        
         sections.forEach(sec => {
             const div = document.createElement("div");
             div.textContent = `Section ${sec}`;
-            div.addEventListener("click", () => {
+            div.addEventListener("click", (e) => {
+                e.stopPropagation();
                 sectionInput.value = sec;
                 sectionDropdown.style.display = "none";
                 triggerFinalSearch(courseTitle, sec);
@@ -130,12 +163,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let hasMatch = false;
 
         divs.forEach(div => {
-            if(div.textContent.includes(val)) {
-                div.style.display = "block";
-                hasMatch = true;
-            } else {
-                div.style.display = "none";
-            }
+            if(div.textContent.includes(val)) { div.style.display = "block"; hasMatch = true; } 
+            else { div.style.display = "none"; }
         });
         sectionDropdown.style.display = hasMatch ? "block" : "none";
         triggerFinalSearch(title, val);
@@ -167,13 +196,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target !== sectionInput && e.target !== sectionDropdown) sectionDropdown.style.display = "none";
     });
 
-    addToScheduleBtn.addEventListener("click", () => {
+    addToScheduleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         if (!currentMatch) return;
         const isAlreadyAdded = savedCourses.some(item => item.code === currentMatch.code && item.section === currentMatch.section);
-        if (isAlreadyAdded) {
-            alert("This course section is already in your schedule!");
-            return;
-        }
+        if (isAlreadyAdded) { alert("This course section is already in your schedule!"); return; }
+        
         savedCourses.push(currentMatch);
         updateScheduleTable();
         titleInput.value = "";
@@ -184,10 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateScheduleTable() {
         scheduleBody.innerHTML = "";
-        if (savedCourses.length === 0) {
-            myScheduleSection.style.display = "none";
-            return;
-        }
+        if (savedCourses.length === 0) { myScheduleSection.style.display = "none"; return; }
         savedCourses.forEach((course, index) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -203,6 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll(".btn-delete").forEach(btn => {
             btn.addEventListener("click", (e) => {
+                e.stopPropagation();
                 const idx = e.target.getAttribute("data-index");
                 savedCourses.splice(idx, 1);
                 updateScheduleTable();
@@ -211,7 +237,8 @@ document.addEventListener("DOMContentLoaded", () => {
         myScheduleSection.style.display = "block";
     }
 
-    downloadPdfBtn.addEventListener("click", () => {
+    downloadPdfBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         const deleteButtons = document.querySelectorAll(".no-print");
         deleteButtons.forEach(el => el.style.display = "none");
         const element = document.getElementById("pdfArea");
