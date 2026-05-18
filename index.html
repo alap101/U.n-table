@@ -57,9 +57,9 @@
         .my-schedule-section { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 25px; display: none; }
         .schedule-title { font-size: 1.2rem; color: #fff; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; }
         
-        /* ✨ تصميم جدول العرض الفخم والمطور (نفسه سيتحول لـ PDF) */
+        /* ضبط الحاوية المخصصة للطباعة والعرض المباشر */
         .pdf-table-wrapper { width: 100%; background: #1e293b; border-radius: 12px; color: var(--text-color); padding: 15px; border: 1px solid var(--border-color); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 500px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 550px; }
         th, td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); }
         th { background-color: #0f172a; color: var(--accent-color); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
         tr:last-child td { border-bottom: none; }
@@ -70,6 +70,16 @@
 
         .no-results { text-align: center; color: #64748b; margin-top: 20px; font-style: italic; display: none; }
         #fileStatus { margin-top: 5px; font-size: 0.85rem; color: var(--success-color); display: none; }
+
+        /* تلوين كامل ورقة الـ PDF وإجبار الأبعاد على الامتداد الكلي لمنع البياض السفلي والمساحات الفارغة */
+        #pdfArea {
+            background-color: #0f172a !important; 
+            padding: 25px; 
+            border-radius: 12px;
+            width: 100%;
+            min-height: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -120,7 +130,7 @@
     </div>
 
     <div id="myScheduleSection" class="my-schedule-section">
-        <div id="pdfArea" style="background-color: #0f172a; padding: 15px; border-radius: 12px;">
+        <div id="pdfArea">
             <div style="font-size: 1.4rem; font-weight: bold; color: var(--accent-color); margin-bottom: 15px; text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
                 My Exam Schedule
             </div>
