@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const csvFileInput = document.getElementById("csvFileInput");
+    const excelFileInput = document.getElementById("excelFileInput");
     const fileStatus = document.getElementById("fileStatus");
     const searchBox = document.getElementById("searchBox");
     
@@ -14,63 +14,52 @@ document.addEventListener("DOMContentLoaded", () => {
     const scheduleBody = document.getElementById("scheduleBody");
     const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
-    let examData = []; // سيتم ملؤها ديناميكياً من الملف المرفوع
+    let examData = []; 
     let uniqueTitles = [];
     let currentMatch = null; 
     let savedCourses = []; 
 
-    // 1. الاستماع لرفع الملف وقراءته فوراً
-    csvFileInput.addEventListener("change", (e) => {
+    // قراءة ملف الـ XLSX ديناميكياً باستخدام مكتبة SheetJS
+    excelFileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = function (event) {
-            const text = event.target.result;
-            parseCSV(text);
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            // قراءة ورقة العمل الأولى داخل ملف الإكسل
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            // تحويل الورقة إلى مصفوفة كائنات جافاسكريبت (JSON)
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            processExcelData(jsonData);
         };
-        reader.readAsText(file);
+        reader.readAsArrayBuffer(file);
     });
 
-    // دالة لتحويل نص الـ CSV إلى مصفوفة برمجية
-    function parseCSV(text) {
-        examData = [];
-        const lines = text.split("\n");
-        
-        // جلب العناوين لمعرفة الترتيب الصحيح للأعمدة
-        const headers = lines[0].split(";").map(h => h.trim().replace(/"/g, ''));
-        
-        const codeIdx = headers.indexOf("Crs. Code");
-        const titleIdx = headers.indexOf("Course Title");
-        const secIdx = headers.indexOf("Section");
-        const roomIdx = headers.indexOf("Room");
-        const dateIdx = headers.indexOf("Exam Date");
-        const periodIdx = headers.indexOf("Period");
-        const timeIdx = headers.indexOf("Time");
-
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
-            const columns = lines[i].split(";").map(c => c.trim().replace(/"/g, ''));
-            
-            if (columns.length >= headers.length) {
-                examData.push({
-                    code: columns[codeIdx] || "",
-                    title: columns[titleIdx] || "",
-                    section: columns[secIdx] || "",
-                    room: columns[roomIdx] || "",
-                    date: columns[dateIdx] || "",
-                    period: columns[periodIdx] || "",
-                    time: columns[timeIdx] || ""
-                });
-            }
-        }
+    // دالة لربط وتنسيق بيانات الإكسل لتطابق واجهة البحث والـ PDF
+    function processExcelData(data) {
+        examData = data.map(row => {
+            return {
+                code: row["Crs. Code"] || row["code"] || "",
+                title: row["Course Title"] || row["title"] || "",
+                section: row["Section"] || row["section"] || "",
+                room: row["Room"] || row["room"] || "",
+                date: row["Exam Date"] || row["date"] || "",
+                period: row["Period"] || row["period"] || "",
+                time: row["Time"] || row["time"] || ""
+            };
+        }).filter(item => item.title !== ""); // استبعاد السطور الفارغة إن وجدت
 
         if (examData.length > 0) {
             uniqueTitles = [...new Set(examData.map(item => item.title))].sort();
             fileStatus.style.display = "block";
-            searchBox.style.display = "block"; // إظهار صناديق البحث
+            searchBox.style.display = "block"; 
             
-            // تصفير البيانات السابقة إن وجدت
+            // إعادة تهيئة الواجهة
             savedCourses = [];
             scheduleBody.innerHTML = "";
             myScheduleSection.style.display = "none";
@@ -78,10 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
             titleInput.value = "";
             sectionInput.value = "";
             sectionInput.disabled = true;
+        } else {
+            alert("Could not find correct columns. Please ensure columns match ('Course Title', 'Section', etc.)");
         }
     }
 
-    // ميزات البحث والـ Dropdown المدمجة
+    // ميزات البحث والـ Dropdown المدمجة والذكية
     function initTitleDropdown(filterText = "") {
         titleDropdown.innerHTML = "";
         const filtered = uniqueTitles.filter(t => t.toLowerCase().includes(filterText.toLowerCase()));
