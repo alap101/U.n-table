@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const addToScheduleBtn = document.getElementById("addToScheduleBtn");
     const myScheduleSection = document.getElementById("myScheduleSection");
     const scheduleBody = document.getElementById("scheduleBody");
-    const pdfPrintBody = document.getElementById("pdfPrintBody");
     const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
     let examData = []; 
@@ -110,7 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
             
             savedCourses = [];
             scheduleBody.innerHTML = "";
-            pdfPrintBody.innerHTML = "";
             myScheduleSection.style.display = "none";
             resultCard.style.display = "none";
             titleInput.value = "";
@@ -215,43 +213,27 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isAlreadyAdded) { alert("This course section is already in your schedule!"); return; }
         
         savedCourses.push(currentMatch);
-        updateScheduleTables();
+        updateScheduleTable();
         titleInput.value = "";
         sectionInput.value = "";
         sectionInput.disabled = true;
         resultCard.style.display = "none";
     });
 
-    function updateScheduleTables() {
+    function updateScheduleTable() {
         scheduleBody.innerHTML = "";
-        pdfPrintBody.innerHTML = "";
-        
         if (savedCourses.length === 0) { myScheduleSection.style.display = "none"; return; }
-        
         savedCourses.forEach((course, index) => {
-            const trMain = document.createElement("tr");
-            trMain.innerHTML = `
-                <td style="font-weight:600; color:#fff;">${course.title}<br><small style="color:#94a3b8">${course.code}</small></td>
-                <td>${course.section}</td>
-                <td style="color:#10b981; font-weight:bold;">${course.room}</td>
-                <td>${course.date}</td>
-                <td>${course.time} <small style="color:#94a3b8">(${course.period})</small></td>
-                <td><button class="btn-delete" data-index="${index}">❌</button></td>
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="course-td">${course.title}<div class="course-code-sub">${course.code}</div></td>
+                <td style="color:#fff;">${course.section}</td>
+                <td class="room-td">${course.room}</td>
+                <td style="color:#fff;">${course.date}</td>
+                <td style="color:#fff;">${course.time} <span style="color:#94a3b8; font-size:0.8rem;">(${course.period})</span></td>
+                <td class="no-print"><button class="btn-delete" data-index="${index}">❌</button></td>
             `;
-            scheduleBody.appendChild(trMain);
-
-            const trPrint = document.createElement("tr");
-            trPrint.innerHTML = `
-                <td>
-                    <div class="print-course-title">${course.title}</div>
-                    <div class="print-course-code">${course.code}</div>
-                </td>
-                <td style="color:#ffffff;">${course.section}</td>
-                <td><span class="print-room-badge">${course.room}</span></td>
-                <td style="color:#ffffff;">${course.date}</td>
-                <td style="color:#ffffff;">${course.time} <span style="color:#94a3b8; font-size:11px;">(${course.period})</span></td>
-            `;
-            pdfPrintBody.appendChild(trPrint);
+            scheduleBody.appendChild(tr);
         });
 
         document.querySelectorAll(".btn-delete").forEach(btn => {
@@ -259,31 +241,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.stopPropagation();
                 const idx = e.target.getAttribute("data-index");
                 savedCourses.splice(idx, 1);
-                updateScheduleTables();
+                updateScheduleTable();
             });
         });
         myScheduleSection.style.display = "block";
     }
 
-    // إعدادات التصدير الاحترافية لمنع التفاف السطور والمساحات البيضاء على الهاتف والويندوز
+    // تصدير جدول الشاشة المباشر بدقة عالية وحجم عريض يملأ الورقة بالكامل بدون بياض
     downloadPdfBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const element = document.getElementById("pdfPrintContainer");
+        
+        // إخفاء عمود الحذف (❌) مؤقتاً لكي لا يظهر في الـ PDF
+        const deleteButtons = document.querySelectorAll(".no-print");
+        deleteButtons.forEach(el => el.style.display = "none");
+        
+        const element = document.getElementById("pdfArea");
         
         const options = {
-            margin:       0, // إلغاء الهوامش البيضاء تماماً
+            margin:       [10, 10, 10, 10],
             filename:     'My_Exam_Schedule.pdf',
             image:        { type: 'jpeg', quality: 1.0 },
             html2canvas:  { 
-                scale: 2.5, // دقة فائقة الوضوح للخطوط والرموز
+                scale: 2.5, // دقة ممتازة وخطوط حادة جداً
                 useCORS: true,
-                logging: false,
-                width: 1122, // العرض الثابت الدقيق لورقة A4 أفقية بالبكسل لمنع انكماش الجدول
-                windowWidth: 1122 // محاكاة تصفح عريض على الجوال ليخرج الجدول ممتازاً
+                backgroundColor: "#0f172a" // إجبار أطراف الورقة بالكامل لتصبح داكنة وفخمة تابعة للموقع
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
         
-        html2pdf().set(options).from(element).save();
+        html2pdf().set(options).from(element).save().then(() => {
+            // إعادة إظهار عمود الحذف (❌) بعد انتهاء التصدير مباشرة
+            deleteButtons.forEach(el => el.style.display = "table-cell");
+        });
     });
 });
