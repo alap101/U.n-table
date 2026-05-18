@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Exam Finder & Schedule Builder</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -69,14 +70,14 @@
 <div class="container">
     <header>
         <h1>Smart Exam Finder</h1>
-        <p>Upload exam CSV file to start searching</p>
+        <p>Upload exam Excel file (.xlsx) to start searching</p>
     </header>
 
     <div class="upload-box">
-        <p>Select the final exam CSV file</p>
-        <label for="csvFileInput" class="upload-btn">📁 Choose CSV File</label>
-        <input type="file" id="csvFileInput" accept=".csv">
-        <div id="fileStatus">✓ File uploaded successfully!</div>
+        <p>Select the final exam Excel file</p>
+        <label for="excelFileInput" class="upload-btn">📁 Choose Excel File (.xlsx)</label>
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls">
+        <div id="fileStatus">✓ File processed successfully!</div>
     </div>
 
     <div id="searchBox" class="search-box">
