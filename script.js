@@ -21,13 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentMatch = null; 
     let savedCourses = []; 
 
-    // دالة ذكية لتحويل أرقام إكسل الغريبة (مثل 46176) إلى تاريخ مقروء ومفهوم للطلاب
     function formatExcelDate(excelDate) {
         if (!excelDate) return "";
-        // إذا كان التاريخ مكتوباً كنص عادي من البداية، اتركه كما هو
         if (isNaN(excelDate)) return excelDate; 
         
-        // تحويل الرقم التسلسلي لإكسل إلى تاريخ جافاسكريبت
         const date = new Date((excelDate - 25569) * 86400 * 1000);
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         
@@ -89,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function processExcelData(data, fileName) {
         examData = data.map(row => {
-            // هنا نقوم بتمرير التاريخ المجلوب للدالة لتصليحه فوراً قبل عرضه
             const rawDate = row["Exam Date"] || row["date"] || "";
             const formattedDate = formatExcelDate(rawDate);
 
@@ -98,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 title: row["Course Title"] || row["title"] || "",
                 section: row["Section"] || row["section"] || "",
                 room: row["Room"] || row["room"] || "",
-                date: formattedDate, // التاريخ المصلح الذكي
+                date: formattedDate,
                 period: row["Period"] || row["period"] || "",
                 time: row["Time"] || row["time"] || ""
             };
@@ -224,17 +220,18 @@ document.addEventListener("DOMContentLoaded", () => {
         resultCard.style.display = "none";
     });
 
+    // تحديث بناء خلايا الجدول بالألوان الجديدة المتناسقة والمنظمة
     function updateScheduleTable() {
         scheduleBody.innerHTML = "";
         if (savedCourses.length === 0) { myScheduleSection.style.display = "none"; return; }
         savedCourses.forEach((course, index) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td style="color:#000; font-weight:600;">${course.title}<br><small style="color:#64748b">${course.code}</small></td>
-                <td style="color:#000">${course.section}</td>
-                <td style="color:#10b981; font-weight:bold;">${course.room}</td>
-                <td style="color:#000">${course.date}</td>
-                <td style="color:#000">${course.time} (${course.period})</td>
+                <td class="course-td">${course.title}<div class="course-code-sub">${course.code}</div></td>
+                <td>${course.section}</td>
+                <td class="room-td">${course.room}</td>
+                <td>${course.date}</td>
+                <td>${course.time} <span style="color:#94a3b8; font-size:0.8rem;">(${course.period})</span></td>
                 <td class="no-print"><button class="btn-delete" data-index="${index}">❌</button></td>
             `;
             scheduleBody.appendChild(tr);
@@ -251,18 +248,26 @@ document.addEventListener("DOMContentLoaded", () => {
         myScheduleSection.style.display = "block";
     }
 
+    // إصلاح أبعاد التقاط صورة الـ PDF لتناسب الجوال والكمبيوتر وتملأ الشاشة
     downloadPdfBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         const deleteButtons = document.querySelectorAll(".no-print");
         deleteButtons.forEach(el => el.style.display = "none");
+        
         const element = document.getElementById("pdfArea");
+        
         const options = {
-            margin:       [10, 10, 10, 10],
+            margin:       [8, 8, 8, 8],
             filename:     'My_Exam_Schedule.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { 
+                scale: 3, // زيادة الدقة لمنع البكسلة وضبابية الخطوط
+                useCORS: true,
+                backgroundColor: "#1e293b" // إجبار الخلفية لتصبح داكنة ومرتبة بدلاً من الأبيض العشوائي
+            },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
+        
         html2pdf().set(options).from(element).save().then(() => {
             deleteButtons.forEach(el => el.style.display = "table-cell");
         });
