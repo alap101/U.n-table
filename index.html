@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Exam Finder & Schedule Builder</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -18,6 +17,23 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 650px; }
+        
+        /* إخفاء عناصر الموقع بالكامل أثناء الطباعة ليبقى الجدول فقط */
+        @media print {
+            body { background: white !important; color: black !important; padding: 0; }
+            .container { max-width: 100%; width: 100%; }
+            .no-print, header, .upload-box, .search-box, .result-card, #downloadPdfBtn, .btn-delete { display: none !important; }
+            .my-schedule-section { background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+            .schedule-title { color: #000 !important; border-bottom: 2px solid #000 !important; text-align: center; font-size: 22px !important; margin-bottom: 20px !important; }
+            .pdf-table-wrapper { background: transparent !important; padding: 0 !important; border: none !important; }
+            table { width: 100% !important; min-width: 100% !important; border: 1px solid #000 !important; }
+            th, td { padding: 12px !important; border: 1px solid #000 !important; color: #000 !important; font-size: 12px !important; }
+            th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .course-td { color: #000 !important; }
+            .course-code-sub { color: #475569 !important; }
+            .room-td { color: #000 !important; font-weight: bold !important; }
+        }
+
         header { text-align: center; margin-bottom: 25px; }
         header h1 { color: var(--accent-color); font-size: 1.8rem; margin-bottom: 5px; }
         header p { color: #94a3b8; font-size: 0.9rem; }
@@ -57,7 +73,6 @@
         .my-schedule-section { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 25px; display: none; }
         .schedule-title { font-size: 1.2rem; color: #fff; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; }
         
-        /* ضبط الحاوية المخصصة للطباعة والعرض المباشر */
         .pdf-table-wrapper { width: 100%; background: #1e293b; border-radius: 12px; color: var(--text-color); padding: 15px; border: 1px solid var(--border-color); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 550px; }
         th, td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); }
@@ -70,16 +85,6 @@
 
         .no-results { text-align: center; color: #64748b; margin-top: 20px; font-style: italic; display: none; }
         #fileStatus { margin-top: 5px; font-size: 0.85rem; color: var(--success-color); display: none; }
-
-        /* تلوين كامل ورقة الـ PDF وإجبار الأبعاد على الامتداد الكلي لمنع البياض السفلي والمساحات الفارغة */
-        #pdfArea {
-            background-color: #0f172a !important; 
-            padding: 25px; 
-            border-radius: 12px;
-            width: 100%;
-            min-height: 100%;
-            box-sizing: border-box;
-        }
     </style>
 </head>
 <body>
@@ -130,27 +135,23 @@
     </div>
 
     <div id="myScheduleSection" class="my-schedule-section">
-        <div id="pdfArea">
-            <div style="font-size: 1.4rem; font-weight: bold; color: var(--accent-color); margin-bottom: 15px; text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
-                My Exam Schedule
-            </div>
-            <div class="pdf-table-wrapper">
-                <table id="scheduleTable">
-                    <thead>
-                        <tr>
-                            <th>Course Title (Code)</th>
-                            <th>Sec</th>
-                            <th>Room</th>
-                            <th>Exam Date</th>
-                            <th>Time</th>
-                            <th class="no-print">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scheduleBody"></tbody>
-                </table>
-            </div>
+        <div class="schedule-title">My Exam Schedule</div>
+        <div class="pdf-table-wrapper">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Course Title (Code)</th>
+                        <th>Sec</th>
+                        <th>Room</th>
+                        <th>Exam Date</th>
+                        <th>Time</th>
+                        <th class="no-print">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody"></tbody>
+            </table>
         </div>
-        <button id="downloadPdfBtn" class="btn btn-pdf" style="margin-top: 15px;">📥 Save Schedule as PDF</button>
+        <button id="downloadPdfBtn" class="btn btn-pdf">📥 Save Schedule as PDF / Print</button>
     </div>
 </div>
 
