@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Schedule Finder</title>
+    <title>Smart Exam Finder & Schedule Builder</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -11,65 +12,90 @@
             --text-color: #f8fafc;
             --accent-color: #38bdf8;
             --border-color: #334155;
+            --success-color: #10b981;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; }
-        header { text-align: center; margin-bottom: 30px; }
+        .container { width: 100%; max-width: 650px; }
+        header { text-align: center; margin-bottom: 25px; }
         header h1 { color: var(--accent-color); font-size: 1.8rem; margin-bottom: 5px; }
         header p { color: #94a3b8; font-size: 0.9rem; }
+        
         .search-box { background-color: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; }
-        .section-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
-        .row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .input-group { flex: 1; }
-        input, select { width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 1rem; outline: none; }
-        input:focus, select:focus { border-color: var(--accent-color); }
-        .result-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 20px; display: none; }
-        .result-header { border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
-        .result-title { font-size: 1.4rem; font-weight: bold; color: var(--accent-color); }
-        .result-code { color: #94a3b8; font-size: 1rem; margin-top: 2px; }
-        .info-grid { display: grid; grid-template-columns: repeat(2, 11fr); gap: 15px; }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-group { flex: 1; position: relative; }
+        label { display: block; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; font-weight: 600; }
+        
+        input { width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 1rem; outline: none; }
+        input:focus { border-color: var(--accent-color); }
+        
+        /* القائمة المنسدلة الذكية المدمجة */
+        .dropdown-list { position: absolute; top: 100%; left: 0; width: 100%; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        .dropdown-list div { padding: 10px 12px; cursor: pointer; font-size: 0.95rem; border-bottom: 1px solid #3341551a; }
+        .dropdown-list div:hover { background-color: var(--bg-color); color: var(--accent-color); }
+
+        .result-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 15px; display: none; }
+        .result-header { border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .result-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-color); max-width: 70%; }
+        .result-code { color: #94a3b8; font-size: 0.95rem; margin-top: 2px; }
+        
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
+        .btn-add { background-color: var(--accent-color); color: #0f172a; }
+        .btn-add:hover { background-color: #7dd3fc; }
+        .btn-pdf { background-color: var(--success-color); color: #fff; width: 100%; margin-top: 15px; padding: 12px; font-size: 1rem; }
+        .btn-pdf:hover { background-color: #059669; }
+        .btn-delete { background-color: #ef4444; color: white; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .info-item { display: flex; flex-direction: column; }
-        .info-label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; }
-        .info-value { font-size: 1.1rem; font-weight: 600; margin-top: 3px; }
-        .no-results { text-align: center; color: #64748b; margin-top: 30px; font-style: italic; }
+        .info-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; }
+        .info-value { font-size: 1.05rem; font-weight: 600; margin-top: 2px; }
+        
+        /* قسم الجدول المجمع الخاص بالطالب */
+        .my-schedule-section { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 25px; display: none; }
+        .schedule-title { font-size: 1.2rem; color: #fff; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; }
+        
+        /* تنسيق جدول الـ PDF */
+        .pdf-table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 6px; color: #000; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        th, td { padding: 10px; border: 1px solid #cbd5e1; }
+        th { background-color: #f1f5f9; color: #1e293b; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+
+        .no-results { text-align: center; color: #64748b; margin-top: 20px; font-style: italic; display: none; }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
-        <h1>Exam Finder</h1>
-        <p>Find your exam room, date, and time instantly</p>
+        <h1>Smart Exam Finder</h1>
+        <p>Type or select your course to build your final exam schedule</p>
     </header>
 
     <div class="search-box">
-        <div class="section-title">Option 1: Type Course Title</div>
         <div class="row">
             <div class="input-group" style="flex: 2;">
-                <input type="text" id="typeTitle" placeholder="Course Title (e.g. Calculus 2)">
+                <label>Course Title</label>
+                <input type="text" id="titleInput" placeholder="Click to choose or type..." autocomplete="off">
+                <div id="titleDropdown" class="dropdown-list"></div>
             </div>
             <div class="input-group" style="flex: 1;">
-                <input type="text" id="typeSection" placeholder="Sec (e.g. 50)">
+                <label>Section</label>
+                <input type="text" id="sectionInput" placeholder="Sec..." autocomplete="off" disabled>
+                <div id="sectionDropdown" class="dropdown-list"></div>
             </div>
         </div>
     </div>
 
-    <div class="search-box">
-        <div class="section-title">Option 2: Select from Lists</div>
-        <div class="row">
-            <div class="input-group">
-                <select id="selectTitle"><option value="">Select Course Title</option></select>
-            </div>
-            <div class="input-group">
-                <select id="selectSection" disabled><option value="">Select Section</option></select>
-            </div>
-        </div>
-    </div>
+    <div id="noResults" class="no-results">No matching exam found.</div>
 
     <div id="resultCard" class="result-card">
         <div class="result-header">
-            <div id="resTitle" class="result-title">-</div>
-            <div id="resCode" class="result-code">-</div>
+            <div>
+                <div id="resTitle" class="result-title">-</div>
+                <div id="resCode" class="result-code">-</div>
+            </div>
+            <button id="addToScheduleBtn" class="btn btn-add">➕ Add to Schedule</button>
         </div>
         <div class="info-grid">
             <div class="info-item"><span class="info-label">Section</span><span id="resSection" class="info-value">-</span></div>
@@ -78,7 +104,28 @@
             <div class="info-item"><span class="info-label">Time & Period</span><span id="resTime" class="info-value">-</span></div>
         </div>
     </div>
-    <div id="noResults" class="no-results" style="display: none;">No matching exam found.</div>
+
+    <div id="myScheduleSection" class="my-schedule-section">
+        <div class="schedule-title">My Saved Exam Schedule</div>
+        
+        <div id="pdfArea" class="pdf-table-wrapper">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Course Title (Code)</th>
+                        <th>Sec</th>
+                        <th>Room</th>
+                        <th>Exam Date</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    </tbody>
+            </table>
+        </div>
+        
+        <button id="downloadPdfBtn" class="btn btn-pdf">📥 Save Schedule as PDF</button>
+    </div>
 </div>
 
 <script src="data.js"></script>
